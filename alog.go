@@ -42,7 +42,9 @@ func (al Alog) Start() {
 	for {
 		msg := <-al.msgCh
 		if msg != "" {
-			al.write(msg, nil)
+			go func() {
+				al.write(msg, nil)
+			}()
 		}
 	}
 }
