@@ -42,11 +42,7 @@ func (al Alog) Start() {
 	for {
 		msg := <-al.msgCh
 		if msg != "" {
-			go func() {
-				defer al.m.Unlock()
-				al.m.Lock()
-				al.write(msg, nil)
-			}()
+			al.write(msg, nil)
 		}
 	}
 }
@@ -59,11 +55,13 @@ func (al Alog) formatMessage(msg string) string {
 }
 
 func (al Alog) write(msg string, wg *sync.WaitGroup) {
+	al.m.Lock()
+	defer al.m.Unlock()
 	_, err := al.dest.Write([]byte(al.formatMessage(msg)))
 	if err != nil {
-		go func() {
+		go func(err error) {
 			al.errorCh <- err
-		}()
+		}(err)
 	}
 }
 
